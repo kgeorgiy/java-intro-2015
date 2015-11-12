@@ -1,5 +1,53 @@
 # Тесты к факультативу «Введение в Java»
 
+## Домашнее задание 3. Коллекции
+
+### Задача E. Подсчет слов
+
+Напишите программу, котора подсчитывает число вхождения
+слов в файл и выводит их в порядке возрастания.
+При равенстве числа вхождений, слова должны выводиться
+в лексикографическом порядке.
+
+#### Пример входного файла
+```
+This is the house that Jack built.
+This is the malt 
+That lay in the house that Jack built.
+This is the rat,
+That ate the malt
+That lay in the house that Jack built.
+This is the cat,
+That killed the rat,
+That ate the malt
+That lay in the house that Jack built.
+This is the dog,
+That worried the cat,
+That killed the rat,
+That ate the malt
+That lay in the house that Jack built.
+```
+
+#### Пример выходного файла
+```
+15 the
+15 that
+5 this
+5 jack
+5 is
+5 house
+5 built
+4 malt
+4 lay
+4 in
+3 rat
+3 ate
+2 killed
+2 cat
+1 worried
+1 dog
+```
+
 ## Домашнее задание 2. Введение в ООП
 
 ### Задача С. Модернизированный сканнер
