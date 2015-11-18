@@ -1,5 +1,5 @@
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.io.PrintWriter;
 
 public class ArrayStack {
     int[] stack;
