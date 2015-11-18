@@ -30,22 +30,22 @@ That lay in the house that Jack built.
 
 #### Пример выходного файла
 ```
-15 the
 15 that
-5 this
-5 jack
-5 is
-5 house
+15 the
 5 built
-4 malt
-4 lay
+5 house
+5 is
+5 jack
+5 this
 4 in
-3 rat
+4 lay
+4 malt
 3 ate
-2 killed
+3 rat
 2 cat
-1 worried
+2 killed
 1 dog
+1 worried
 ```
 
 ### Задача F. Мультимножество
