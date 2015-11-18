@@ -1,13 +1,5 @@
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Locale;
-import java.util.Random;
-import java.util.Scanner;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -15,15 +7,16 @@ import java.util.stream.Stream;
 /**
  * @author Georgiy Korneev (kgeorgiy@kgeorgiy.info)
  */
-public class CheckC {
-    public static final Path INPUT_FILE = Paths.get("c.in");
-    public static final Path OUTPUT_FILE = Paths.get("c.out");
-    public static final Random random = new Random();
+public class CheckC extends BaseCheck {
     public static final String ALPHABET = " \tabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.+-";
     private static final double EPS = 1e-10;
-    public static int test = 0;
 
     public static void main(String[] args) {
+        new CheckC().testAll();
+    }
+
+    @Override
+    protected void testAll() {
         check("Single integer", " ", "1");
         check("Single double", " ", "1.1");
         check("Multiple integers", " ", "1", "+2", "-3");
@@ -39,7 +32,7 @@ public class CheckC {
         }
     }
 
-    public static boolean isInteger(String s) {
+    public boolean isInteger(String s) {
         try {
             Integer.parseInt(s);
             return true;
@@ -48,7 +41,7 @@ public class CheckC {
         }
     }
 
-    private static void random(int n, int m) {
+    private void random(int n, int m) {
         final StringBuilder sb = new StringBuilder();
         for (int i = 0; i < m; i++) {
             sb.append(randomChar(ALPHABET));
@@ -63,24 +56,23 @@ public class CheckC {
         );
     }
 
-    private static double randomDouble() {
+    private double randomDouble() {
         return (random.nextDouble() * 2 - 1) * Math.pow(10, (double) (random.nextInt(200) - 100));
     }
 
-    private static void check(String description, String delims, String... values) {
-        test++;
-        System.out.println("Test " + test + ": " + description);
-        System.out.println("    delimiters: " + crop(delims, 30));
-        write(delims, values);
-        run(delims);
+    private void check(String description, String delims, String... values) {
+        test(description, () -> {
+            System.out.println("    delimiters: " + crop(delims, 30));
+            write(delims, values);
+            run(() -> C.main(new String[]{delims}));
 
-        final Pattern pattern = Pattern.compile("[" + (delims.contains("-") ? delims.replace("-", "") + "-" : delims) + "]");
-        final String[] parts = Arrays.stream(values).flatMap(z -> Arrays.stream(pattern.split(z))).filter(not(String::isEmpty)).toArray(String[]::new);
-        readAndCheck(
-                Arrays.stream(parts).filter(CheckC::isInteger).mapToLong(Long::parseLong).sum(),
-                Arrays.stream(parts).filter(not(CheckC::isInteger)).mapToDouble(Double::parseDouble).sum()
-        );
-        System.out.println("ok");
+            final Pattern pattern = Pattern.compile("[" + (delims.contains("-") ? delims.replace("-", "") + "-" : delims) + "]");
+            final String[] parts = Arrays.stream(values).flatMap(z -> Arrays.stream(pattern.split(z))).filter(not(String::isEmpty)).toArray(String[]::new);
+            readAndCheck(
+                    Arrays.stream(parts).filter(this::isInteger).mapToLong(Long::parseLong).sum(),
+                    Arrays.stream(parts).filter(not(this::isInteger)).mapToDouble(Double::parseDouble).sum()
+            );
+        });
     }
 
     private static String crop(String s, int size) {
@@ -91,66 +83,32 @@ public class CheckC {
         return p.negate();
     }
 
-    private static void readAndCheck(long expectedValue, double expectedDouble) {
-        try {
-            try (Scanner in = new Scanner(Files.newBufferedReader(OUTPUT_FILE))) {
-                in.useLocale(Locale.US);
-                assertEquals(expectedValue, in.nextLong());
-                double actualDouble = in.nextDouble();
-                double d = Math.abs(expectedDouble - actualDouble);
-                if (d >= EPS && d / actualDouble >= EPS) {
-                    assertEquals(expectedDouble, actualDouble);
-                }
+    private void readAndCheck(long expectedValue, double expectedDouble) {
+        read(in -> {
+            in.useLocale(Locale.US);
+            assertEquals(expectedValue, in.nextLong());
+            double actualDouble = in.nextDouble();
+            double d = Math.abs(expectedDouble - actualDouble);
+            if (d >= EPS && d / actualDouble >= EPS) {
+                assertEquals(expectedDouble, actualDouble);
             }
-        } catch (IOException e) {
-            throw error("Cannot read output", e);
-        }
+            return null;
+        });
     }
 
-    private static void assertEquals(Object expected, Object found) {
-        if (!expected.equals(found)) {
-            throw error("\nExpected " + expected + "\nfound    " + found, null);
-        }
-    }
-
-    private static void run(String delims) {
-        try {
-            long start = System.currentTimeMillis();
-            C.main(new String[]{delims});
-            System.out.println("    Finished in " + (System.currentTimeMillis() - start) + " ms");
-        } catch (Exception e) {
-            throw error("Program thrown exception", e);
-        }
-    }
-
-    private static void write(String delims, String[] values) {
-        try {
-            try (BufferedWriter writer = Files.newBufferedWriter(INPUT_FILE)) {
-                boolean first = true;
-                for (String value : values) {
-                    writer.write(first && random.nextBoolean() ? "" : randomSpace(delims));
-                    first = false;
-                    writer.write(value);
-                }
-                if (random.nextBoolean()) {
-                    writer.write(randomSpace(delims));
-                }
-                writer.write("\n");
+    private void write(String delimiters, String[] values) {
+        write(writer -> {
+            boolean first = true;
+            for (String value : values) {
+                writer.write(first && random.nextBoolean() ? "" : randomWord(delimiters));
+                first = false;
+                writer.write(value);
             }
-        } catch (IOException e) {
-            throw error("Error writing input file", e);
-        }
-    }
-
-    private static AssertionError error(String message, Exception e) {
-        return new AssertionError("Test " + test + ": " + message, e);
-    }
-
-    private static String randomSpace(String delims) {
-        return randomChar(delims) + (random.nextBoolean() ? "" : randomSpace(delims));
-    }
-
-    private static char randomChar(String str) {
-        return str.charAt(random.nextInt(str.length()));
+            if (random.nextBoolean()) {
+                writer.write(randomWord(delimiters));
+            }
+            writer.println();
+            return null;
+        });
     }
 }
